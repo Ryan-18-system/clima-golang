@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Ryan-18-system/clima-golang/internal/model/brasilapi"
@@ -13,8 +14,15 @@ type BrasilApiService struct {
 	Url string
 }
 
+func NewBrasilApiService() *BrasilApiService {
+	return &BrasilApiService{
+		Url: "https://brasilapi.com.br/api",
+	}
+}
+
 func (brApi *BrasilApiService) GetCep(cep string) (*brasilapi.Address, error) {
 	url := fmt.Sprintf("%s/cep/v2/%s", brApi.Url, cep)
+	log.Printf("Requesting Brasil API for CEP: %s\n", cep)
 	responseByte, err := executeRequest(url)
 	if err != nil {
 		return nil, err

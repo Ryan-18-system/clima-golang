@@ -1,6 +1,11 @@
 package usecase
 
-import "github.com/Ryan-18-system/clima-golang/internal/service"
+import (
+	"log"
+
+	"github.com/Ryan-18-system/clima-golang/internal/model/brasilapi"
+	"github.com/Ryan-18-system/clima-golang/internal/service"
+)
 
 type SearchWeather struct {
 	BrasilApiService *service.BrasilApiService
@@ -13,10 +18,11 @@ func NewSearchWeather(brasilApiService *service.BrasilApiService, conversorServi
 		ConversorService: conversorService,
 	}
 }
-func (sw *SearchWeather) GetWeatherByCep(cep string) (string, error) {
+func (sw *SearchWeather) GetWeatherByCep(cep string) (*brasilapi.Address, error) {
 	address, err := sw.BrasilApiService.GetCep(cep)
+	log.Printf("Address retrieved: %+v\n", address)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Assuming we have a method to get weather data by address
@@ -28,5 +34,5 @@ func (sw *SearchWeather) GetWeatherByCep(cep string) (string, error) {
 	// Convert temperature if needed
 	// convertedTemp := sw.ConversorService.ConverterParafahrenheit(weatherData.Temperature)
 
-	return address.FormatedAddressBrasilApi(), nil // Replace with actual weather data
+	return address, nil // Replace with actual weather data
 }
