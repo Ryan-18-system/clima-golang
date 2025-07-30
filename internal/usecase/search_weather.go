@@ -6,15 +6,14 @@ import (
 
 	"github.com/Ryan-18-system/clima-golang/internal/model/brasilapi"
 	"github.com/Ryan-18-system/clima-golang/internal/model/dto"
-	"github.com/Ryan-18-system/clima-golang/internal/service"
 )
 
 type SearchWeather struct {
-	BrasilApiService *service.BrasilApiService
-	ConversorService *service.ConversorService
+	BrasilApiService BrasilApi
+	ConversorService Conversor
 }
 
-func NewSearchWeather(brasilApiService *service.BrasilApiService, conversorService *service.ConversorService) *SearchWeather {
+func NewSearchWeather(brasilApiService BrasilApi, conversorService Conversor) *SearchWeather {
 	return &SearchWeather{
 		BrasilApiService: brasilApiService,
 		ConversorService: conversorService,
