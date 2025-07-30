@@ -33,6 +33,38 @@ func (brApi *BrasilApiService) GetCep(cep string) (*brasilapi.Address, error) {
 	}
 	return address, nil
 }
+func (brApi *BrasilApiService) GetCity(city string) (*brasilapi.CityResponse, error) {
+	url := fmt.Sprintf("%s/cptec/v1/cidade/%s", brApi.Url, city)
+	log.Printf("Requesting Brasil API for City: %s\n", city)
+	responseByte, err := executeRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Response from Brasil API: %s\n", string(responseByte))
+	cities, err := util.ParseJSONResponse[[]brasilapi.CityResponse](responseByte)
+	if err != nil {
+		return nil, err
+	}
+	if len(*cities) == 0 {
+		return nil, fmt.Errorf("no cities found in response")
+	}
+	return &(*cities)[0], nil
+}
+
+func (brApi *BrasilApiService) GetWeatherByCodeCity(codeCity int) (*brasilapi.WeatherResponse, error) {
+	url := fmt.Sprintf("%s/cptec/v1/clima/previsao/%d", brApi.Url, codeCity)
+	log.Printf("Requesting Brasil API for Weather by Code City: %d\n", codeCity)
+	responseByte, err := executeRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Response from Brasil API: %s\n", string(responseByte))
+	weatherResponse, err := util.ParseJSONResponse[brasilapi.WeatherResponse](responseByte)
+	if err != nil {
+		return nil, err
+	}
+	return weatherResponse, nil
+}
 
 func executeRequest(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
