@@ -1,4 +1,4 @@
-POST http://localhost:8080/temperatura/cep
+POST https://api-clima-go-6pfdn7s34a-ew.a.run.app/temperatura/cep
 Content-Type: application/json
 
 {
