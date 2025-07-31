@@ -25,10 +25,12 @@ func (brApi *BrasilApiService) GetCep(cep string) (*brasilapi.Address, error) {
 	log.Printf("Requesting Brasil API for CEP: %s\n", cep)
 	responseByte, err := executeRequest(url)
 	if err != nil {
+		log.Printf("Error requesting Brasil API for CEP, ERROR: %s\n", err.Error())
 		return nil, err
 	}
 	address, err := util.ParseJSONResponse[brasilapi.Address](responseByte)
 	if err != nil {
+		log.Printf("Error parsing Brasil API response, ERROR: %s\n", err.Error())
 		return nil, err
 	}
 	return address, nil
