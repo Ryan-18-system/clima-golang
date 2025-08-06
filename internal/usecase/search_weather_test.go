@@ -1,6 +1,7 @@
 package usecase_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -34,6 +35,15 @@ func (m *mockBrasilApi) GetWeatherByCodeCity(cityID int) (*brasilapi.WeatherResp
 			{Max: 30},
 		},
 	}, nil
+}
+func (m *mockBrasilApi) GetCepWithContext(ctx context.Context, cep string) (*brasilapi.Address, error) {
+	return m.GetCep(cep)
+}
+func (m *mockBrasilApi) GetCityWithContext(ctx context.Context, city string) (*brasilapi.CityResponse, error) {
+	return m.GetCity(city)
+}
+func (m *mockBrasilApi) GetWeatherByCodeCityWithContext(ctx context.Context, cityID int) (*brasilapi.WeatherResponse, error) {
+	return m.GetWeatherByCodeCity(cityID)
 }
 
 type mockConversor struct{}
