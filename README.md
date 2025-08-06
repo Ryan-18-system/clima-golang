@@ -2,15 +2,31 @@
 
 API REST desenvolvida em Go para consulta de clima e conversão de temperaturas a partir do CEP informado. Utiliza integração com a [BrasilAPI](https://brasilapi.com.br/) para buscar informações de endereço, cidade e clima.
 
+## Novidades
+
+- **Tracing distribuído com OpenTelemetry e Zipkin:**  
+  Agora a aplicação implementa tracing distribuído entre os serviços internos (Serviço A e Serviço B), permitindo acompanhar o fluxo das requisições e medir o tempo de resposta das operações de busca de CEP, cidade e clima.
+- **Observabilidade:**  
+  Todas as requisições são rastreadas e podem ser visualizadas na interface do Zipkin.
+- **Integração com BrasilAPI:**  
+  Para verificar o clima, a aplicação utiliza a BrasilAPI para obter informações de endereço, cidade e previsão do tempo a partir do CEP informado.
+
+## Como executar localmente
+
+1. Clone o repositório.
+2. Execute `docker-compose up` para subir a aplicação e o Zipkin juntos.
+3. Acesse os endpoints conforme descrito abaixo.
+4. Para visualizar os traces, acesse o painel do Zipkin em [http://localhost:9411](http://localhost:9411).
+
 ## Endpoints
 
 - **GET /**  
   Retorna uma mensagem de boas-vindas.  
-  `https://api-clima-go-6pfdn7s34a-ew.a.run.app/`
+  `http://localhost:8080/`
 
 - **POST /temperatura/cep**  
   Consulta o clima pelo CEP informado.  
-  `https://api-clima-go-6pfdn7s34a-ew.a.run.app/temperatura/cep`  
+  `http://localhost:8080/temperatura/cep`  
   Corpo da requisição (JSON):
   ```json
   {
@@ -49,11 +65,12 @@ API REST desenvolvida em Go para consulta de clima e conversão de temperaturas 
 - **internal/util/**  
   Utilitários diversos, como manipulação de JSON.
 
-## Como executar localmente
+## Observabilidade
 
-1. Clone o repositório.
-2. Execute `docker-compose up` para subir o serviço em ambiente Docker.
-3. Acesse os endpoints conforme descrito acima.
+- **Acesse o painel do Zipkin:**  
+  Após subir o projeto com Docker Compose, acesse [http://localhost:9411](http://localhost:9411) para visualizar os traces das requisições.
+- **Como funciona:**  
+  Cada requisição POST para `/temperatura/cep` gera spans detalhados para cada etapa do processamento (busca de CEP, cidade e clima), facilitando o monitoramento e análise de performance.
 
 ## Testes
 
@@ -65,4 +82,4 @@ go test ./internal/usecase
 
 ## Autor
 
-Projeto desenvolvido por Ryan Nóbrega Brandão da Cruz
+Projeto desenvolvido por Ryan

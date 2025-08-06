@@ -1,11 +1,15 @@
 package usecase
 
 import (
+	"context"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/Ryan-18-system/clima-golang/internal/model/brasilapi"
 	"github.com/Ryan-18-system/clima-golang/internal/model/dto"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type SearchWeather struct {
@@ -20,29 +24,57 @@ func NewSearchWeather(brasilApiService BrasilApi, conversorService Conversor) *S
 	}
 }
 
-func (sw *SearchWeather) GetWeatherByCep(cep string) (*dto.TemperatureResponse, error) {
-	address, err := sw.BrasilApiService.GetCep(cep)
+// Novo método com contexto para tracing distribuído
+func (sw *SearchWeather) GetWeatherByCepWithContext(ctx context.Context, cep string) (*dto.TemperatureResponse, error) {
+	tracer := otel.Tracer("search-weather")
+	ctx, span := tracer.Start(ctx, "Serviço B - Orquestração")
+	defer span.End()
+
+	// Span para busca de CEP
+	cepCtx, cepSpan := tracer.Start(ctx, "Busca CEP")
+	startCep := time.Now()
+	address, err := sw.BrasilApiService.GetCepWithContext(cepCtx, cep)
+	cepSpan.SetAttributes(attribute.String("cep", cep))
+	cepSpan.SetAttributes(attribute.String("city", address.City))
+	cepSpan.SetAttributes(attribute.String("state", address.State))
+	cepSpan.SetAttributes(attribute.Float64("duration_ms", float64(time.Since(startCep).Milliseconds())))
+	cepSpan.End()
 	log.Printf("Address retrieved: %+v\n", address)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("City found: %s, State: %s\n", address.City, address.State)
-	cityResponse, err := sw.BrasilApiService.GetCity(address.City)
+
+	// Span para busca de cidade
+	cityCtx, citySpan := tracer.Start(ctx, "Busca Cidade")
+	cityResponse, err := sw.BrasilApiService.GetCityWithContext(cityCtx, address.City)
+	citySpan.SetAttributes(attribute.String("city", address.City))
+	citySpan.End()
 	if err != nil {
 		log.Printf("City not found for CEP: %s\n", cep)
 		return nil, err
 	}
-	weatherResponse, err := sw.BrasilApiService.GetWeatherByCodeCity(cityResponse.ID)
+
+	// Span para busca de clima
+	weatherCtx, weatherSpan := tracer.Start(ctx, "Busca Clima")
+	weatherResponse, err := sw.BrasilApiService.GetWeatherByCodeCityWithContext(weatherCtx, cityResponse.ID)
+	weatherSpan.SetAttributes(attribute.Int("city_id", cityResponse.ID))
+	weatherSpan.End()
 	if err != nil {
 		log.Printf("Weather not found for city: %s, ID: %d\n", cityResponse.Name, cityResponse.ID)
 		return nil, err
 	}
+
 	tempResponse, err := sw.MapTemperatures(weatherResponse)
 	if err != nil {
 		log.Printf("Error mapping temperatures for city: %s, ID: %d\n", cityResponse.Name, cityResponse.ID)
 		return nil, err
 	}
 	return tempResponse, nil
+}
+
+// Métodos originais continuam para compatibilidade
+func (sw *SearchWeather) GetWeatherByCep(cep string) (*dto.TemperatureResponse, error) {
+	return sw.GetWeatherByCepWithContext(context.Background(), cep)
 }
 
 // Mapper para calcular Fahrenheit e Kelvin

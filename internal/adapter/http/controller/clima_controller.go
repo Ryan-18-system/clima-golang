@@ -9,6 +9,8 @@ import (
 
 	"github.com/Ryan-18-system/clima-golang/internal/model/dto"
 	"github.com/Ryan-18-system/clima-golang/internal/usecase"
+
+	"go.opentelemetry.io/otel"
 )
 
 type ClimaController struct {
@@ -24,6 +26,9 @@ func (c *ClimaController) SearchWeatherByZipCode(w http.ResponseWriter, r *http.
 	var req dto.CepRequest
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
+	tracer := otel.Tracer("clima-controller")
+	ctx, span := tracer.Start(r.Context(), "Serviço A - SearchWeatherByZipCode")
+	defer span.End()
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -36,7 +41,7 @@ func (c *ClimaController) SearchWeatherByZipCode(w http.ResponseWriter, r *http.
 		return
 	}
 
-	result, err := c.SearchWeatherService.GetWeatherByCep(req.Cep)
+	result, err := c.SearchWeatherService.GetWeatherByCepWithContext(ctx, req.Cep)
 	if err != nil {
 		http.Error(w, "can not find zipcode", 404)
 		return
