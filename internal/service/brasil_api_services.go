@@ -37,6 +37,7 @@ func (brApi *BrasilApiService) GetCepWithContext(ctx context.Context, cep string
 		span.RecordError(err)
 		return nil, err
 	}
+
 	address, err := util.ParseJSONResponse[brasilapi.Address](responseByte)
 	if err != nil {
 		log.Printf("Error parsing Brasil API response, ERROR: %s\n", err.Error())

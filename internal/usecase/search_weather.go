@@ -34,35 +34,35 @@ func (sw *SearchWeather) GetWeatherByCepWithContext(ctx context.Context, cep str
 	cepCtx, cepSpan := tracer.Start(ctx, "Busca CEP")
 	startCep := time.Now()
 	address, err := sw.BrasilApiService.GetCepWithContext(cepCtx, cep)
+
+	if err != nil {
+		return nil, err
+	}
 	cepSpan.SetAttributes(attribute.String("cep", cep))
 	cepSpan.SetAttributes(attribute.String("city", address.City))
 	cepSpan.SetAttributes(attribute.String("state", address.State))
 	cepSpan.SetAttributes(attribute.Float64("duration_ms", float64(time.Since(startCep).Milliseconds())))
 	cepSpan.End()
 	log.Printf("Address retrieved: %+v\n", address)
-	if err != nil {
-		return nil, err
-	}
-
 	// Span para busca de cidade
 	cityCtx, citySpan := tracer.Start(ctx, "Busca Cidade")
 	cityResponse, err := sw.BrasilApiService.GetCityWithContext(cityCtx, address.City)
-	citySpan.SetAttributes(attribute.String("city", address.City))
-	citySpan.End()
 	if err != nil {
 		log.Printf("City not found for CEP: %s\n", cep)
 		return nil, err
 	}
+	citySpan.SetAttributes(attribute.String("city", address.City))
+	citySpan.End()
 
 	// Span para busca de clima
 	weatherCtx, weatherSpan := tracer.Start(ctx, "Busca Clima")
 	weatherResponse, err := sw.BrasilApiService.GetWeatherByCodeCityWithContext(weatherCtx, cityResponse.ID)
-	weatherSpan.SetAttributes(attribute.Int("city_id", cityResponse.ID))
-	weatherSpan.End()
 	if err != nil {
 		log.Printf("Weather not found for city: %s, ID: %d\n", cityResponse.Name, cityResponse.ID)
 		return nil, err
 	}
+	weatherSpan.SetAttributes(attribute.Int("city_id", cityResponse.ID))
+	weatherSpan.End()
 
 	tempResponse, err := sw.MapTemperatures(weatherResponse)
 	if err != nil {

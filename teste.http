@@ -2,5 +2,5 @@ POST http://localhost:8080/temperatura/cep
 Content-Type: application/json
 
 {
-  "cep": "58041150"
+  "cep": "08225211"
 }
